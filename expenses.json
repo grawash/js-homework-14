@@ -1,0 +1,26 @@
+[
+    {
+      "id": 1,
+      "category": "entertainment",
+      "price": "60",
+      "date": "2025-01-24T13:02:33.577Z"
+    },
+    {
+      "id": 2,
+      "category": "food",
+      "price": "12.50",
+      "date": "2025-01-24T13:06:17.055Z"
+    },
+    {
+      "id": 3,
+      "category": "shopping",
+      "price": "75",
+      "date": "2025-01-24T13:06:42.426Z"
+    },
+    {
+      "id": 4,
+      "category": "bills",
+      "price": "10",
+      "date": "2025-01-24T15:32:23.659Z"
+    }
+  ]
