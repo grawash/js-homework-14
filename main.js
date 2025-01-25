@@ -64,6 +64,10 @@ app.put('/api/:id', async (req,res) => {
 
 
 app.delete('/api/:id', async (req, res) => {
+    const apiKey = req.headers['api-key']
+    if(!apiKey){
+        return res.status(403).json({"message": "unauthorized"})
+    }
     const {id} = req.params
     const data = await fs.readFile('expenses.json', 'utf-8')
     const expenses = await JSON.parse(data);
