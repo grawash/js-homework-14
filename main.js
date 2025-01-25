@@ -24,6 +24,9 @@ app.get('/api/:id', async (req,res) => {
 
 app.post('/api', async (req,res) => {
     const {category, price} = req.body
+    if(!category || !price){
+        return res.status(400).json({"message": "category and price required"})
+    }
     const data = await fs.readFile('expenses.json', 'utf-8')
     const expenses = await JSON.parse(data);
     const lastId = expenses[expenses.length -1]?.id || 0;
