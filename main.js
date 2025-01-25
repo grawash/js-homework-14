@@ -41,6 +41,28 @@ app.post('/api', async (req,res) => {
     res.json({"message": "new expense added successfuly", "data": newExpense})
 })
 
+app.put('/api/:id', async (req,res) => {
+    const {category, price} = req.body
+    const {id} = req.params
+    const data = await fs.readFile('expenses.json', 'utf-8')
+    const expenses = await JSON.parse(data);
+    const foundExpense = expenses.find(el => el.id === Number(id))
+    const index = expenses.indexOf(foundExpense)
+    if(!foundExpense){
+        return res.status(404).json({"message": "expense not found"})
+    }
+    const newExpense = {
+        ...foundExpense,
+        category: category || foundExpense.category,
+        price: price || foundExpense.price,
+        date: new Date().toISOString(),
+    }
+    expenses[index] = newExpense;
+    await fs.writeFile('expenses.json', JSON.stringify(expenses, null, 2));
+    res.json({"message": "expense updated successfuly", "data": newExpense})
+})
+
+
 app.delete('/api/:id', async (req, res) => {
     const {id} = req.params
     const data = await fs.readFile('expenses.json', 'utf-8')
