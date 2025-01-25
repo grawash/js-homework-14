@@ -6,9 +6,11 @@ const app = express();
 app.use(express.json())
 
 app.get('/api', async (req,res) => {
+    let {page =1, take = 10} = req.query
+    take>50? take=10 : take;
     const data = await fs.readFile('expenses.json', 'utf-8')
     const expenses = await JSON.parse(data);
-    res.json(expenses)
+    res.json(expenses.slice((page-1)*take, take*page))
 })
 
 app.get('/api/:id', async (req,res) => {
