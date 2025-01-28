@@ -6,7 +6,9 @@ const getAllExpenses = async (req,res) => {
     take>50? take=10 : take;
     const data = await fs.readFile('expenses.json', 'utf-8')
     const expenses = await JSON.parse(data);
-    res.json(expenses.slice((page-1)*take, take*page))
+    // res.json(expenses.slice((page-1)*take, take*page))
+    res.render('pages/home.ejs', {expenses})
+
 }
 
 const getExpenseById = async (req,res) => {
@@ -17,7 +19,12 @@ const getExpenseById = async (req,res) => {
     if(!foundExpense){
         return res.status(404).json({"message": "not found"})
     }
-    res.json({"message": "success", "data": foundExpense})
+    // res.json({"message": "success", "data": foundExpense})
+    res.render('pages/expense.ejs', {foundExpense})
+}
+
+const addExpense = async (req,res) => {
+    res.render('pages/add.ejs')
 }
 
 const createExpense = async (req,res) => {
@@ -36,7 +43,15 @@ const createExpense = async (req,res) => {
     }
     expenses.push(newExpense);
     await fs.writeFile('expenses.json', JSON.stringify(expenses, null, 2));
-    res.json({"message": "new expense added successfuly", "data": newExpense})
+    res.render('pages/expense.ejs')
+}
+
+const updateExpense = async (req,res) => {
+    const {id} = req.params
+    const data = await fs.readFile('expenses.json', 'utf-8')
+    const expenses = await JSON.parse(data);
+    const foundExpense = expenses.find(el => el.id === Number(id))
+    res.render('pages/update.ejs', {foundExpense})
 }
 
 const updateExpenseById = async (req,res) => {
@@ -61,10 +76,6 @@ const updateExpenseById = async (req,res) => {
 }
 
 const deleteExpenseById = async (req, res) => {
-    const apiKey = req.headers['api-key']
-    if(!apiKey){
-        return res.status(403).json({"message": "unauthorized"})
-    }
     const {id} = req.params
     const data = await fs.readFile('expenses.json', 'utf-8')
     const expenses = await JSON.parse(data);
@@ -79,4 +90,4 @@ const deleteExpenseById = async (req, res) => {
 
 }
 
-export {getAllExpenses, getExpenseById, createExpense, updateExpenseById, deleteExpenseById}
+export {getAllExpenses, getExpenseById, addExpense, createExpense, updateExpense, updateExpenseById, deleteExpenseById}
