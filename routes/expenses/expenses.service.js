@@ -1,25 +1,26 @@
 import fs from "fs/promises";
+import expenseModel from "../../models/expense.js";
+import { isValidObjectId } from "mongoose";
 
 
 const getAllExpenses = async (req,res) => {
     let {page =1, take = 10} = req.query
     take>50? take=10 : take;
-    const data = await fs.readFile('expenses.json', 'utf-8')
-    const expenses = await JSON.parse(data);
-    // res.json(expenses.slice((page-1)*take, take*page))
+    const expenses = await expenseModel.find().skip((page-1)*take).limit(take)
     res.render('pages/home.ejs', {expenses})
-
+    // res.json(expenses)
 }
 
 const getExpenseById = async (req,res) => {
     const {id} = req.params
-    const data = await fs.readFile('expenses.json', 'utf-8')
-    const expenses = await JSON.parse(data);
-    const foundExpense = expenses.find(el => el.id === Number(id))
+    if(!isValidObjectId(id)){
+        res.status(400).json({message: "not valid Mongodb id"})
+        return
+    }
+    const foundExpense = await expenseModel.findById(id)
     if(!foundExpense){
         return res.status(404).json({"message": "not found"})
     }
-    // res.json({"message": "success", "data": foundExpense})
     res.render('pages/expense.ejs', {foundExpense})
 }
 
@@ -32,62 +33,42 @@ const createExpense = async (req,res) => {
     if(!category || !price){
         return res.status(400).json({"message": "category and price required"})
     }
-    const data = await fs.readFile('expenses.json', 'utf-8')
-    const expenses = await JSON.parse(data);
-    const lastId = expenses[expenses.length -1]?.id || 0;
-    const newExpense = {
-        id: lastId + 1,
-        category,
-        price,
-        date: new Date().toISOString(),
-    }
-    expenses.push(newExpense);
-    await fs.writeFile('expenses.json', JSON.stringify(expenses, null, 2));
-    res.render('pages/expense.ejs')
+    const expense = await expenseModel.create({category,price})
+    res.status(201).json({message: "created successfuly", data: expense})
+    // res.render('pages/expense.ejs')
 }
 
-const updateExpense = async (req,res) => {
+const updateExpensePage = async (req,res) => {
     const {id} = req.params
-    const data = await fs.readFile('expenses.json', 'utf-8')
-    const expenses = await JSON.parse(data);
-    const foundExpense = expenses.find(el => el.id === Number(id))
+    const foundExpense = await expenseModel.findById(id)
     res.render('pages/update.ejs', {foundExpense})
 }
 
 const updateExpenseById = async (req,res) => {
     const {category, price} = req.body
     const {id} = req.params
-    const data = await fs.readFile('expenses.json', 'utf-8')
-    const expenses = await JSON.parse(data);
-    const foundExpense = expenses.find(el => el.id === Number(id))
-    const index = expenses.indexOf(foundExpense)
-    if(!foundExpense){
-        return res.status(404).json({"message": "expense not found"})
+    if(!isValidObjectId(id)){
+        res.status(400).json({message: "not valid Mongodb id"})
+        return
     }
-    const newExpense = {
-        ...foundExpense,
-        category: category || foundExpense.category,
-        price: price || foundExpense.price,
-        date: new Date().toISOString(),
+    const newExpense = await expenseModel.findByIdAndUpdate(id, req.body, {new: true})
+    if(!newExpense){
+        return res.status(400).json({"message": "expense could not pe updated"})
     }
-    expenses[index] = newExpense;
-    await fs.writeFile('expenses.json', JSON.stringify(expenses, null, 2));
-    res.json({"message": "expense updated successfuly", "data": newExpense})
+    res.status(201).json({"message": "expense updated successfuly", "data": newExpense})
 }
 
 const deleteExpenseById = async (req, res) => {
     const {id} = req.params
-    const data = await fs.readFile('expenses.json', 'utf-8')
-    const expenses = await JSON.parse(data);
-    const foundExpense = expenses.find(el => el.id === Number(id))
-    const index = expenses.indexOf(foundExpense)
+    if(!isValidObjectId(id)){
+        res.status(400).json({message: "not valid Mongodb id"})
+        return
+    }
+    const foundExpense = await expenseModel.findByIdAndDelete(id);
     if(!foundExpense){
         return res.status(404).json({"message": "expense not found"})
     }
-    expenses.splice(index, 1);
-    await fs.writeFile('expenses.json', JSON.stringify(expenses, null, 2));
     res.json({"message":"expense deleted successfuly", "data": foundExpense})
-
 }
 
-export {getAllExpenses, getExpenseById, addExpense, createExpense, updateExpense, updateExpenseById, deleteExpenseById}
+export {getAllExpenses, getExpenseById, addExpense, createExpense, updateExpensePage, updateExpenseById, deleteExpenseById}

@@ -1,8 +1,8 @@
 import express from "express";
 import { apiRouter } from "./routes/router.js";
-
+import connectDb from './db/db.js'
 const app = express();
-//if wont work istall cors
+connectDb();
 app.set('view engine', 'ejs')
 app.use(express.static('public'))
 app.use(express.json())
